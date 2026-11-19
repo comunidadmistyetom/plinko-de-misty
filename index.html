@@ -1,1 +1,435 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#073b4c">
+<title>Plinko de Misty</title>
+<style>
+:root{--ink:#12384a;--mint:#b9f4e5;--coral:#ff718b;--gold:#ffd166;--violet:#9076ff}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#fff;background:radial-gradient(ellipse at 50% -5%,#25b6bb 0,#0b7182 38%,#073b4c 100%);overflow-x:hidden}
+body:before,body:after{content:"✦　✧　✦";position:fixed;z-index:-1;color:#c2fff0aa;font-size:24px;letter-spacing:22px;top:15%;left:5%;transform:rotate(-14deg)}
+body:after{content:"✧　✦　✧";top:auto;bottom:10%;left:auto;right:2%;transform:rotate(12deg);color:#ffd16699}
+.page{width:min(100%,520px);margin:auto;padding:18px 14px 28px}
+.topline{display:flex;align-items:center;justify-content:center;gap:9px;color:#d7fff6;font-size:12px;font-weight:800;letter-spacing:.18em;text-transform:uppercase}
+.topline .spark{color:var(--gold);font-size:19px}
+h1{margin:5px 0 2px;text-align:center;font-size:clamp(30px,8vw,43px);line-height:1;font-weight:1000;letter-spacing:-.045em;text-shadow:0 4px 0 #075465,0 7px 19px #002b3d88}
+h1 span{color:#ffe08a}
+.subtitle{text-align:center;margin:9px 0 14px;color:#d5fff8;font-size:14px;font-weight:650}
+.game-card{position:relative;border:1px solid #d7fff780;border-radius:25px;padding:12px 10px 13px;background:linear-gradient(155deg,#e7fff0 0%,#c5f5f2 48%,#a8e4ed 100%);box-shadow:0 15px 40px #002c3d75,inset 0 1px #fff;overflow:hidden}
+.game-card:before{content:"";position:absolute;inset:0 0 auto;height:46px;background:linear-gradient(180deg,#ffffffaa,transparent);pointer-events:none}
+.board-wrap{position:relative;width:100%;aspect-ratio:360/575;max-height:72vh;min-height:390px;overflow:hidden;border-radius:18px;background:linear-gradient(180deg,#dcfff3,#c0eff1 72%,#a2dfe5);box-shadow:inset 0 3px 12px #247e8c24}
+canvas{display:block;width:100%;height:100%;touch-action:manipulation}
+.hint{margin:10px 2px 0;text-align:center;color:#246071;font-size:12px;font-weight:700}
+.controls{display:flex;justify-content:center;margin:14px 0 0}
+button{border:0;font:inherit;cursor:pointer;touch-action:manipulation}
+#launch{min-width:210px;padding:14px 28px;border-radius:999px;color:#51341b;font-size:17px;font-weight:1000;letter-spacing:.02em;background:linear-gradient(180deg,#ffe99e,#ffc65a);box-shadow:0 5px 0 #dc8d36,0 10px 20px #002c3d44,inset 0 2px #fff8;transition:transform .12s,filter .12s}
+#launch:active{transform:translateY(3px);box-shadow:0 2px 0 #dc8d36,0 5px 12px #002c3d44}
+#launch:disabled{filter:grayscale(.25);opacity:.72;cursor:wait}
+.footnote{margin:12px 0 0;text-align:center;color:#d7fff0;font-size:11px;opacity:.85}
+.result{position:fixed;inset:0;display:grid;place-items:center;padding:20px;background:#032d3dcc;backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .2s;z-index:5}
+.result.show{opacity:1;pointer-events:auto}
+.dialog{width:min(100%,340px);padding:25px 22px 22px;text-align:center;border-radius:27px;background:linear-gradient(155deg,#fff9e7,#c8fff0);color:var(--ink);box-shadow:0 20px 55px #001c2c88;transform:scale(.92);transition:transform .2s}
+.show .dialog{transform:scale(1)}
+.mini-cat{font-size:46px;line-height:1}
+.dialog h2{margin:8px 0 3px;font-size:24px;color:#15717b}
+.dialog p{margin:0 0 17px;font-weight:700;color:#46707a}
+#prize-name{display:block;margin:10px 0 18px;padding:12px 8px;border-radius:15px;color:#6c3c91;background:#f1e8ff;font-size:23px;font-weight:1000;box-shadow:inset 0 2px 5px #7c57a122}
+#close{padding:12px 25px;border-radius:999px;color:white;font-weight:900;background:linear-gradient(135deg,#ff7892,#ee537f);box-shadow:0 4px 0 #b8315c}
+@media(max-height:730px){.page{padding-top:10px}.subtitle{margin:7px 0 9px}.board-wrap{min-height:355px;max-height:66vh}.controls{margin-top:11px}}
+@media(min-width:430px){.game-card{padding:15px}.board-wrap{aspect-ratio:360/575}}
 
+/* Acabado y panel superior de premios */
+body{background:url('fondo-plinko-misty.png') center top/cover fixed no-repeat;color:#12384a}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(180deg,rgba(4,42,65,.38),rgba(27,99,125,.08))}
+body::after{display:none}
+.topline{color:#fff;text-shadow:0 2px 8px #063b56}
+.subtitle{color:#fff;text-shadow:0 2px 8px #063b56}
+.footnote{color:#fff;text-shadow:0 2px 7px #063b56}
+.game-card{background:linear-gradient(145deg,#effff7ed,#c9f5f1ee 55%,#f2e2ffed);border:2px solid #ffffffc7}
+.prize-stage{display:flex;align-items:center;gap:7px;margin:0 0 10px;padding:7px 9px;border:1px solid #f7a9d9;border-radius:18px;background:linear-gradient(135deg,#fff9f2,#f8eaff);box-shadow:0 5px 12px #216d7c24,inset 0 1px #fff}
+.misty-guide{width:92px;height:104px;flex:none;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 3px 4px #b548ae45)}
+.prize-cabinet{flex:1;min-width:0;padding:7px;border:2px solid #ee9cd0;border-radius:14px;background:linear-gradient(150deg,#fff,#fff3fb);box-shadow:inset 0 0 0 2px #ffffff,0 3px 9px #9d579622}
+.cabinet-title{margin:0 0 6px;text-align:center;color:#8f4b94;font-size:10px;line-height:1;font-weight:1000;letter-spacing:.1em;text-shadow:0 1px #fff}
+.prize-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+.prize-mini{min-height:29px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;color:#fff;background:var(--prize-color);box-shadow:inset 0 1px #ffffff88,0 2px 3px #573e8130;text-align:center;line-height:1}
+.prize-mini strong{font-size:10px;font-weight:1000}
+.prize-mini small{margin-top:2px;font-size:6.5px;font-weight:900;letter-spacing:.05em}
+@media(max-width:370px){.misty-guide{width:78px;height:94px}.prize-stage{gap:4px;padding:5px}.prize-cabinet{padding:5px}.prize-mini strong{font-size:9px}.prize-mini small{font-size:6px}}
+
+.start-screen{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:22px;background:linear-gradient(180deg,#073d5c55,#112d4f55),url('fondo-plinko-misty.png') center/cover no-repeat}
+.welcome-card{width:min(100%,420px);padding:28px 22px 24px;text-align:center;border:2px solid #fff;border-radius:30px;background:linear-gradient(145deg,#fffaf1f2,#e9faffed 52%,#ffeaf8f2);box-shadow:0 20px 55px #082b4b88,inset 0 1px #fff}
+.welcome-label{display:inline-block;padding:7px 13px;border-radius:99px;color:#8d4d94;background:#f5ddf3;font-size:11px;font-weight:1000;letter-spacing:.14em}
+.welcome-ball{display:block;width:clamp(125px,38vw,175px);height:auto;margin:12px auto 7px;filter:drop-shadow(0 9px 13px #9c3cae55);animation:float-misty 2.6s ease-in-out infinite}
+@keyframes float-misty{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-7px) rotate(2deg)}}
+.welcome-card h1{margin:2px 0 9px;color:#17485c;font-size:clamp(28px,8vw,39px);line-height:1.08;text-shadow:0 2px #fff}
+.welcome-card h1 span{color:#e653a6}
+.welcome-card p{margin:0 auto 19px;color:#416875;font-size:14px;font-weight:700}
+#enter{min-width:180px;padding:14px 30px;border:0;border-radius:999px;color:#fff;font-size:17px;font-weight:1000;letter-spacing:.05em;background:linear-gradient(180deg,#ff83c5,#e84caa);box-shadow:0 5px 0 #a92e7a,0 10px 20px #613a7350;cursor:pointer;touch-action:manipulation}
+#enter:active{transform:translateY(3px);box-shadow:0 2px 0 #a92e7a,0 5px 12px #613a7350}
+.page{display:none}
+.page.is-visible{display:block}
+</style>
+</head>
+<body>
+<div class="start-screen" id="start-screen">
+  <section class="welcome-card">
+    <div class="welcome-label">JUEGO DE PREMIOS</div>
+    <img class="welcome-ball" src="pelotita-misty.png" alt="Misty en su bolita brillante">
+    <h1>¡Bienvenidos<br><span>a Plinko de Misty!</span></h1>
+    <p>Dejá caer a Misty entre los brillitos y descubrí dónde termina su recorrido.</p>
+    <button id="enter">ENTRAR ✨</button>
+  </section>
+</div>
+
+<main class="page" id="game-screen">
+  <div class="topline"><span class="spark">✦</span> juego de premios <span class="spark">✦</span></div>
+  <h1>PLINKO <span>DE MISTY</span></h1>
+  <p class="subtitle">¡Soltá a Misty y descubrí dónde cae!</p>
+
+  <section class="game-card" aria-label="Juego Plinko de Misty">
+    <div class="prize-stage">
+      <img class="misty-guide" src="misty-premios.png" alt="Misty señalando los premios">
+      <div class="prize-cabinet">
+        <div class="cabinet-title">✦ PREMIOS DE MISTY ✦</div>
+        <div class="prize-grid" aria-label="Premios disponibles">
+          <div class="prize-mini" style="--prize-color:#ff8299"><strong>500</strong><small>FICHAS</small></div>
+          <div class="prize-mini" style="--prize-color:#ffb84e"><strong>1000</strong><small>FICHAS</small></div>
+          <div class="prize-mini" style="--prize-color:#9578ff"><strong>10%</strong></div>
+          <div class="prize-mini" style="--prize-color:#45bcb4"><strong>15%</strong></div>
+          <div class="prize-mini" style="--prize-color:#f477a5"><strong>20%</strong></div>
+          <div class="prize-mini" style="--prize-color:#687eea"><strong>25%</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="board-wrap">
+      <canvas id="board" aria-label="Tablero Plinko con premios"></canvas>
+    </div>
+    <p class="hint" id="hint">Tocá el botón para lanzar a Misty 🐾</p>
+  </section>
+
+  <div class="controls"><button id="launch">TIRAR ✨</button></div>
+  <p class="footnote">Cada caída puede sorprenderte 🍀</p>
+</main>
+
+<div class="result" id="result" role="dialog" aria-modal="true" aria-labelledby="result-title">
+  <div class="dialog">
+    <div class="mini-cat">🐱</div>
+    <h2 id="result-title">¡Misty encontró tu premio!</h2>
+    <p>Te tocó:</p>
+    <strong id="prize-name"></strong>
+    <button id="close">¡Qué suerte! 💖</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('board');
+  const ctx = canvas.getContext('2d');
+
+  const mistyImage = new Image();
+  mistyImage.src = 'pelotita-misty.png';
+
+  const button = document.getElementById('launch');
+  const hint = document.getElementById('hint');
+  const result = document.getElementById('result');
+  const prizeName = document.getElementById('prize-name');
+
+  const prizes = [
+    {label:'500 FICHAS', color:'#ff8299'},
+    {label:'1000 FICHAS', color:'#ffb84e'},
+    {label:'10%', color:'#9578ff'},
+    {label:'15%', color:'#45bcb4'},
+    {label:'20%', color:'#f477a5'},
+    {label:'25%', color:'#687eea'}
+  ];
+
+  const W=360,H=575,binsY=500,rows=9,pegRadius=4.4;
+  let ball=null,raf=0,last=0,particles=[];
+  const pegs=[];
+
+  for(let r=0;r<rows;r++){
+    const count=r+3;
+    const spacing=34;
+    const start=(W-(count-1)*spacing)/2;
+    const y=86+r*42;
+    for(let c=0;c<count;c++) pegs.push({x:start+c*spacing,y});
+  }
+
+  function resize(){
+    const box=canvas.getBoundingClientRect();
+    const dpr=Math.min(window.devicePixelRatio||1,2);
+    canvas.width=Math.round(box.width*dpr);
+    canvas.height=Math.round(box.height*dpr);
+    ctx.setTransform(canvas.width/W,0,0,canvas.height/H,0,0);
+    draw();
+  }
+
+  function roundRect(x,y,w,h,r){
+    ctx.beginPath();
+    ctx.roundRect(x,y,w,h,r);
+  }
+
+  function drawMisty(x,y,r){
+    ctx.save();
+    ctx.shadowColor='#ff35c8';
+    ctx.shadowBlur=12;
+    ctx.fillStyle='#ffffff';
+    ctx.beginPath();
+    ctx.arc(x,y,r+2,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.shadowBlur=0;
+    ctx.beginPath();
+    ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.clip();
+
+    if(mistyImage.complete&&mistyImage.naturalWidth){
+      ctx.drawImage(mistyImage,x-r,y-r,r*2,r*2);
+    }else{
+      ctx.fillStyle='#8299a5';
+      ctx.fillRect(x-r,y-r,r*2,r*2);
+    }
+
+    ctx.restore();
+    ctx.save();
+    ctx.strokeStyle='#ff62cb';
+    ctx.lineWidth=2.2;
+    ctx.shadowColor='#ff35c8';
+    ctx.shadowBlur=8;
+    ctx.beginPath();
+    ctx.arc(x,y,r+1,0,Math.PI*2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+
+    for(let i=0;i<12;i++){
+      const x=(i*71+22)%W;
+      const y=(i*93+25)%binsY;
+      ctx.fillStyle=i%2?'#ffffff31':'#42b9ab24';
+      ctx.beginPath();
+      ctx.arc(x,y,2.2,0,Math.PI*2);
+      ctx.fill();
+    }
+
+    ctx.strokeStyle='#68a9a9';
+    ctx.lineWidth=5;
+    ctx.lineCap='round';
+    ctx.beginPath();
+    ctx.moveTo(24,38);
+    ctx.lineTo(24,492);
+    ctx.moveTo(336,38);
+    ctx.lineTo(336,492);
+    ctx.stroke();
+
+    pegs.forEach(p=>{
+      ctx.fillStyle='#ffffff';
+      ctx.beginPath();
+      ctx.arc(p.x,p.y+1,pegRadius+1.1,0,Math.PI*2);
+      ctx.fill();
+
+      ctx.fillStyle='#35b8ae';
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,pegRadius,0,Math.PI*2);
+      ctx.fill();
+
+      ctx.fillStyle='#b9fff0';
+      ctx.beginPath();
+      ctx.arc(p.x-1.3,p.y-1.5,1.5,0,Math.PI*2);
+      ctx.fill();
+    });
+
+    const slotW=W/prizes.length;
+
+    for(let i=0;i<prizes.length;i++){
+      const x=i*slotW;
+      ctx.fillStyle=prizes[i].color;
+      roundRect(x+1,binsY,slotW-2,58,5);
+      ctx.fill();
+
+      ctx.fillStyle='#ffffff';
+      ctx.font='900 11px system-ui';
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+
+      const label=prizes[i].label;
+      if(label.includes('FICHAS')){
+        ctx.font='900 9px system-ui';
+        ctx.fillText(label.replace(' FICHAS',''),x+slotW/2,binsY+23);
+        ctx.font='800 7px system-ui';
+        ctx.fillText('FICHAS',x+slotW/2,binsY+38);
+      }else{
+        ctx.font='1000 15px system-ui';
+        ctx.fillText(label,x+slotW/2,binsY+31);
+      }
+
+      if(i>0){
+        ctx.strokeStyle='#ffffffa0';
+        ctx.lineWidth=2;
+        ctx.beginPath();
+        ctx.moveTo(x,binsY+5);
+        ctx.lineTo(x,binsY+57);
+        ctx.stroke();
+      }
+    }
+
+    ctx.fillStyle='#ffffffaa';
+    roundRect(145,17,70,28,14);
+    ctx.fill();
+    ctx.fillStyle='#288d8e';
+    ctx.font='900 10px system-ui';
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    ctx.fillText('MISTY',180,31);
+
+    if(ball) drawMisty(ball.x,ball.y,15);
+
+    particles.forEach(p=>{
+      ctx.globalAlpha=Math.max(0,p.life);
+      ctx.fillStyle=p.color;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fill();
+      ctx.globalAlpha=1;
+    });
+  }
+
+  function launch(){
+    if(ball) return;
+
+    const targetIndex=Math.floor(Math.random()*prizes.length);
+    const targetX=(targetIndex+.5)*(W/prizes.length);
+
+    ball={
+      x:180+(Math.random()-.5)*18,
+      y:55,
+      vx:(Math.random()-.5)*1.3,
+      vy:0,
+      r:15,
+      targetIndex,
+      targetX
+    };
+
+    button.disabled=true;
+    hint.textContent='¡Misty está buscando tu premio! ✨';
+    last=performance.now();
+    raf=requestAnimationFrame(tick);
+  }
+
+  function tick(now){
+    const dt=Math.min((now-last)/16.67,1.7);
+    last=now;
+
+    if(ball){
+      ball.vy+=.19*dt;
+      ball.x+=ball.vx*dt;
+      ball.y+=ball.vy*dt;
+
+      if(ball.x<39){
+        ball.x=39;
+        ball.vx=Math.abs(ball.vx)*.72;
+      }
+
+      if(ball.x>321){
+        ball.x=321;
+        ball.vx=-Math.abs(ball.vx)*.72;
+      }
+
+      for(const p of pegs){
+        const dx=ball.x-p.x;
+        const dy=ball.y-p.y;
+        const dist=Math.hypot(dx,dy);
+        const min=ball.r+pegRadius;
+
+        if(dist<min&&dist>0){
+          const nx=dx/dist;
+          const ny=dy/dist;
+          ball.x=p.x+nx*min;
+          ball.y=p.y+ny*min;
+
+          const dot=ball.vx*nx+ball.vy*ny;
+          if(dot<0){
+            ball.vx-=1.72*dot*nx;
+            ball.vy-=1.72*dot*ny;
+          }
+
+          ball.vx+=nx*(Math.random()*.22-.11);
+          ball.vy=Math.max(ball.vy,.5);
+        }
+      }
+
+      const remaining=Math.max(1,binsY-ball.y);
+      const desiredVx=Math.max(-4,Math.min(4,(ball.targetX-ball.x)/(remaining/4.6)));
+      const progress=Math.max(0,Math.min(1,(ball.y-90)/(binsY-90)));
+      ball.vx+=(desiredVx-ball.vx)*(.018+progress*.09);
+      ball.vx=Math.max(-4.8,Math.min(4.8,ball.vx*.999));
+      ball.vy=Math.min(ball.vy,5.8);
+
+      if(ball.y>binsY+28){
+        const idx=ball.targetIndex;
+        const chosen=prizes[idx];
+        const landingX=(idx+.5)*(W/prizes.length);
+
+        for(let i=0;i<24;i++){
+          particles.push({
+            x:landingX,
+            y:binsY+20,
+            vx:(Math.random()-.5)*5,
+            vy:-Math.random()*4-1,
+            life:1,
+            r:2+Math.random()*3,
+            color:chosen.color
+          });
+        }
+
+        ball=null;
+        cancelAnimationFrame(raf);
+        hint.textContent='¡Misty encontró un premio! 🍀';
+        prizeName.textContent=chosen.label;
+        setTimeout(()=>result.classList.add('show'),330);
+      }
+    }
+
+    particles=particles.filter(p=>p.life>.03);
+    particles.forEach(p=>{
+      p.x+=p.vx;
+      p.y+=p.vy;
+      p.vy+=.12;
+      p.life-=.025;
+    });
+
+    draw();
+    if(ball) raf=requestAnimationFrame(tick);
+  }
+
+  document.getElementById('enter').addEventListener('click',()=>{
+    document.getElementById('start-screen').style.display='none';
+    document.getElementById('game-screen').classList.add('is-visible');
+    window.dispatchEvent(new Event('resize'));
+  });
+
+  button.addEventListener('click',launch);
+  canvas.addEventListener('click',launch);
+
+  document.getElementById('close').addEventListener('click',()=>{
+    result.classList.remove('show');
+    button.disabled=false;
+    hint.textContent='¡Tocá para volver a lanzar a Misty! 🐾';
+  });
+
+  result.addEventListener('click',e=>{
+    if(e.target===result) document.getElementById('close').click();
+  });
+
+  mistyImage.onload=()=>draw();
+  window.addEventListener('resize',resize);
+  resize();
+})();
+</script>
+</body>
+</html>
