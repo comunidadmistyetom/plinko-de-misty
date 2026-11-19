@@ -47,14 +47,14 @@ body::after{display:none}
 .topline,.subtitle,.footnote{color:#fff;text-shadow:0 2px 8px #063b56}
 .game-card{background:linear-gradient(145deg,#effff7ed,#c9f5f1ee 55%,#f2e2ffed);border:2px solid #ffffffc7}
 .start-screen{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:22px;background:linear-gradient(180deg,#073d5c55,#112d4f55),url('fondo-plinko-misty.png') center/cover no-repeat}
-.welcome-card{position:relative;overflow:hidden;width:min(100%,420px);padding:28px 22px 24px;text-align:center;border:2px solid #fff7ff;border-radius:30px;background:radial-gradient(ellipse at 50% 0%,#fff5fc 0%,#ffd8ef 42%,#f4c5f6 100%);box-shadow:0 20px 55px #082b4b88,inset 0 2px 8px #ffffff,inset 0 -7px 18px #ec83ca55}
+.welcome-card{position:relative;overflow:hidden;width:min(100%,420px);padding:28px 22px 24px;text-align:center;border:2px solid #effcff;border-radius:30px;background:radial-gradient(ellipse at 50% 0%,#effcff 0%,#bceeff 44%,#8bdafa 100%);box-shadow:0 20px 55px #082b4b88,inset 0 2px 8px #ffffff,inset 0 -7px 18px #45bce655}
 .welcome-card::before{content:"";position:absolute;inset:0 0 auto;height:45%;pointer-events:none;background:linear-gradient(180deg,#ffffffa8,transparent);z-index:0}
 .welcome-card>*{position:relative;z-index:1}
-.welcome-label{display:inline-block;padding:7px 13px;border-radius:99px;color:#8d4d94;background:#f5ddf3;font-size:11px;font-weight:1000;letter-spacing:.14em}
+.welcome-label{display:inline-block;padding:7px 13px;border-radius:99px;color:#267da0;background:#d8f7ff;font-size:11px;font-weight:1000;letter-spacing:.14em}
 .welcome-ball{display:block;width:clamp(125px,38vw,175px);height:auto;margin:12px auto 7px;filter:drop-shadow(0 9px 13px #9c3cae55);animation:float-misty 2.6s ease-in-out infinite}
 @keyframes float-misty{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-7px) rotate(2deg)}}
 .welcome-card h1{margin:2px 0 9px;color:#17485c;font-size:clamp(28px,8vw,39px);line-height:1.08;text-shadow:0 2px #fff}
-.welcome-card h1 span{color:#e653a6}
+.welcome-card h1 span{color:#128fc6}
 .welcome-card p{margin:0 auto 19px;color:#416875;font-size:14px;font-weight:700}
 .page{display:none}
 .page.is-visible{display:block}
@@ -76,6 +76,7 @@ body::after{display:none}
 
 /* Botones PNG */
 #enter,#launch{display:block;min-width:0;padding:0;border:0;background:transparent;box-shadow:none;line-height:0}
+#enter{margin:0 auto}
 #enter img{display:block;width:min(235px,68vw);height:auto;filter:drop-shadow(0 8px 12px #b63b9455);transition:transform .15s,filter .15s}
 #launch img{display:block;width:min(220px,62vw);height:auto;filter:drop-shadow(0 8px 12px #6536a855);transition:transform .15s,filter .15s}
 #enter:hover img,#launch:hover img{transform:translateY(-2px);filter:brightness(1.06) drop-shadow(0 9px 13px #9446ad66)}
@@ -343,9 +344,9 @@ body::after{display:none}
     if(ball) return;
 
     ball={
-      x:120+Math.random()*60,
+      x:W/2,
       y:55,
-      vx:(Math.random()-.5)*3.8,
+      vx:0,
       vy:0,
       r:10
     };
